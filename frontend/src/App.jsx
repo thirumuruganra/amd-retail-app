@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import React from 'react'
 
 function App() {
-  const [reviewText, setReviewText] = useState('')
-  const [analysis, setAnalysis] = useState(null)
-  const [errorMessage, setErrorMessage] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [reviewText, setReviewText] = React.useState('')
+  const [analysis, setAnalysis] = React.useState(null)
+  const [errorMessage, setErrorMessage] = React.useState('')
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
 
@@ -72,7 +72,12 @@ function App() {
     ? sentimentPalette[analysis.sentiment] || sentimentPalette.Neutral
     : sentimentPalette.Neutral
 
-  const hasReview = reviewText.trim().length > 0
+  const textareaDescriptionId = errorMessage ? 'review-help review-error' : 'review-help'
+  const statusMessage = isSubmitting
+    ? 'Analysis in progress.'
+    : analysis
+      ? 'Analysis complete. Review the updated results panel.'
+      : ''
 
   return (
     <main className="relative min-h-dvh overflow-hidden bg-canvas px-4 py-8 text-ink sm:px-8 sm:py-10">
@@ -97,6 +102,7 @@ function App() {
           <form
             className="reveal-up delay-1 rounded-2xl border border-ink-200 bg-paper-200 p-4 sm:p-6"
             onSubmit={onSubmit}
+            aria-busy={isSubmitting}
           >
             <label
               htmlFor="review"
@@ -106,32 +112,50 @@ function App() {
             </label>
             <textarea
               id="review"
+              name="review_text"
               value={reviewText}
               onChange={(event) => setReviewText(event.target.value)}
               placeholder="Example: El pedido llego tarde y la caja vino rota, pero el soporte fue muy amable..."
               rows={12}
-              className="w-full resize-y rounded-xl border border-ink-300 bg-white px-3 py-3 text-sm text-ink shadow-inner outline-none ring-0 placeholder:text-ink-400 focus:border-ink-500 sm:text-base"
+              maxLength={5000}
+              autoComplete="off"
+              aria-required="true"
+              aria-invalid={Boolean(errorMessage)}
+              aria-describedby={textareaDescriptionId}
+              className="w-full resize-y rounded-xl border border-ink-300 bg-white px-3 py-3 text-sm text-ink shadow-inner outline-none ring-0 placeholder:text-ink-400 focus:border-ink-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink sm:text-base"
             />
+            <p id="review-help" className="mt-2 text-xs text-ink-600">
+              Enter between 3 and 5000 characters.
+            </p>
 
             <div className="mt-4 flex flex-wrap gap-3">
               <button
                 type="submit"
-                disabled={isSubmitting || !hasReview}
-                className="inline-flex items-center rounded-lg border border-ink bg-ink px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:border-ink-300 disabled:bg-ink-300"
+                disabled={isSubmitting}
+                className="inline-flex items-center rounded-lg border border-ink bg-ink px-5 py-2.5 text-sm font-semibold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:border-ink-300 disabled:bg-ink-300"
               >
                 {isSubmitting ? 'Analyzing...' : 'Analyze Review'}
               </button>
               <button
                 type="button"
                 onClick={onReset}
-                className="inline-flex items-center rounded-lg border border-ink-300 bg-paper-100 px-5 py-2.5 text-sm font-semibold text-ink"
+                className="inline-flex items-center rounded-lg border border-ink-300 bg-paper-100 px-5 py-2.5 text-sm font-semibold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
               >
                 Reset
               </button>
             </div>
 
+            <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+              {statusMessage}
+            </p>
+
             {errorMessage && (
-              <p className="mt-4 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+              <p
+                id="review-error"
+                role="alert"
+                aria-live="assertive"
+                className="mt-4 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
+              >
                 {errorMessage}
               </p>
             )}
@@ -164,7 +188,11 @@ function App() {
           </aside>
         </div>
 
-        <section className="reveal-up delay-3 mt-4 rounded-2xl border border-ink-200 bg-paper-200 p-4 sm:mt-5 sm:p-6">
+        <section
+          className="reveal-up delay-3 mt-4 rounded-2xl border border-ink-200 bg-paper-200 p-4 sm:mt-5 sm:p-6"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h3 className="text-lg font-semibold text-ink">Result Dashboard</h3>
             <p

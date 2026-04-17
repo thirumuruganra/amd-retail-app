@@ -37,6 +37,11 @@
   #root {
     min-height: 100dvh;
   }
+
+  :focus-visible {
+    outline: 3px solid var(--ink);
+    outline-offset: 2px;
+  }
 }
 
 @layer utilities {
@@ -130,5 +135,14 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-up,
+  .delay-1,
+  .delay-2,
+  .delay-3 {
+    animation: none !important;
   }
 }
